@@ -1,29 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Tue Mar  1 17:44:52 2022
+
+@author: ymonjid
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Mon Feb 28 12:06:36 2022
 
 @author: ymonjid
 """
 
 import pandas as pd
+import numpy as np
 
-df = pd.read_csv('Glassdoor_Datascientist_Jobs.csv')
+df = pd.read_csv('Glassdoor_Datascientist_Jobs_France.csv')
 
-# 1) salary parsing (removing the "K", the "$", the "(Glassdoor est.)", "Employer...", 
+# 1) salary parsing (removing the "K", the "€", the "(Est. de Glassdoor)", "Salaire fourni ...", 
 # and converting the hourly to annually)
 # Removing the rows with salaries = -1
 df = df[df['Salary Estimate'] != '-1']
 # Removing the "Glassdoor est. text
 salary = df['Salary Estimate'].apply(lambda x: x.split('(')[0]) 
 # Removing the "K"'s and $ sign
-minus_ks = salary.apply(lambda x: x.replace('K','').replace('$',''))
+minus_ks = salary.apply(lambda x: x.replace('k','').replace('€',''))
 # Create a column to 'per hour' and 'Employer provided salary'
-df['hourly'] = df['Salary Estimate'].apply(lambda x: 1 if 'per hour' in x.lower() else 0)
-df['Employer Provided'] = df['Salary Estimate'].apply(lambda x: 1 if 'employer provided salary' in x.lower() else 0)
-# Removing  'Per hour' and 'Employer Provided Salary'
-min_per_hr = minus_ks.apply(lambda x: x.lower().replace('per hour', ''))
-min_employer = min_per_hr.apply(lambda x: x.lower().replace('employer provided salary:', ''))
+df['hourly'] = df['Salary Estimate'].apply(lambda x: 1 if 'par heure' in x.lower() else 0)
+df['Employer Provided'] = df['Salary Estimate'].apply(lambda x: 1 if "salaire fourni par l'employeur:" in x.lower() else 0)
+# Removing  'Par heure' and 'Salaire fourni par l'employeur:'
+min_per_hr = minus_ks.apply(lambda x: x.lower().replace('par heure', ''))
+min_employer = min_per_hr.apply(lambda x: x.lower().replace("salaire fourni par l'employeur:", ''))
 # A column for min and max salary
 df['min salary'] = min_employer.apply(lambda x: int(x.split('-')[0])) 
 df['max salary'] = min_employer.apply(lambda x: int(x.split('-')[1]) if (len(x.split('-'))==2)  else  int(x.split('-')[0]))
@@ -42,8 +51,11 @@ comp = df.apply(lambda x: x['Company Name'] if x['Rating']<0 else x['Company Nam
 comp = df.apply(lambda x: x['Company Name'][:-3] if x['Company Name'][-3:]==str(x['Rating']) else x['Company Name'], axis=1)
 # Remove the ratings in some rows where the values of the rating in the company name are different
 comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(3.3)) else x)
+comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(3.5)) else x)
+comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(3.7)) else x)
 comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(3.8)) else x)
 comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(3.9)) else x)
+comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(4.0)) else x)
 comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(4.1)) else x)
 comp = comp.apply(lambda x: x[:-3] if (x[-3:] == str(4.2)) else x)
 df['Company Name'] = comp
@@ -51,40 +63,47 @@ df['Company Name'] = comp
 # 3) State field
 df['State'] = df['Location'].apply(lambda x: x.split(',')[0])
 
-# 4) Replacing the 'Unkniwn' in 'Type of ownership' by Company-Private or -Public
-df.loc[(df['Founded'] == 'Company - Private')&(df['Type of ownership']=='Unknown / Non-Applicable'), 'Type of ownership'] = 'Company - Private'
-df.loc[(df['Founded'] == 'Company - Public')&(df['Type of ownership']=='Unknown / Non-Applicable'), 'Type of ownership'] = 'Company - Pubic'
+# 4) Replacing the 'Unknown' in 'Type of ownership' by Company-Private or -Public
+df.loc[(df['Founded'] == 'Entreprise non cotée en bourse')&(df['Type of ownership']=='Ne sait pas / non applicable'), 'Type of ownership'] = 'Entreprise non cotée en bourse'
+df.loc[(df['Founded'] == 'Travailleur indépendant')&(df['Type of ownership']=='Ne sait pas / non applicable'), 'Type of ownership'] = 'Travailleur indépendant'
+df.loc[(df['Founded'] == 'Entreprise cotée en bourse')&(df['Type of ownership']=='Ne sait pas / non applicable'), 'Type of ownership'] = 'Entreprise cotée en bourse'
 
 # 5) Determining the age of the company
-## Changing the 'Company - Private' in 'Founded' by the real incorporation year
-df.loc[df['Founded']=='Company - Private', 'Company Name'].value_counts()
-dict_Private = {'UTOFUN\n' : 2016, 'InspiHER Tech' : 1995, 'ClimateAI\n' : 2008, 'IT Consulting Services\n' : 2005, 
-        'Acorn Analytics' : 2016, 'FocusKPI Inc.\n' : 2010, 'Avila Trading\n' : 2017, 'Nexintech Inc.' : 2020, 
-        'Myticas Consulting\n' : 2016, 'zb.io\n' : -1, 'Kattech Systems Inc\n' : 2016
-        }
-df['Founded'] = df.apply(lambda x: dict_Private[x['Company Name']] if (x['Company Name'] in dict_Private) else x['Founded'], axis=1)
+## Companies with non-year in 'Founded'
+NameComp = df.apply(lambda x: x['Company Name'] if (x['Founded']=='Entreprise non cotée en bourse' or x['Founded']=='Entreprise cotée en bourse'
+                                                     or x['Founded']=='Travailleur indépendant') else 'None', axis=1)
+NameComp.value_counts()
+Comp = pd.DataFrame(NameComp[NameComp != 'None'].unique())
 
-## Changing the 'Company - Public' in 'Founded' by the real incorporation year
-df.loc[df['Founded']=='Company - Public', 'Company Name'].value_counts()
-dict_Public = {'IntelliGen Technologies\n' : 1996, 'Dynamic Placement Services, LLC' : 2020}
-df['Founded'] = df.apply(lambda x: dict_Public[x['Company Name']] if (x['Company Name'] in dict_Public) else x['Founded'], axis=1)
+## List of creation years of the companies in 'Companies'
+y = [1929, 1938, 2007, 2014, 1963, 1994, 2013, 1996, 2012, 2017, 2007, 2011, 2017, 2020, 1979, 2020, 1991, 2016]
+dic = {}
+for i in range(0,len(y)):
+    dic[Comp[0][i]] = y[i]
+df['Founded'] = df.apply(lambda x: dic[x['Company Name']] if (x['Company Name'] in dic) else x['Founded'], axis=1)
+df.loc[df['Founded'] == 'Cabinet / Société du secteur privé', 'Founded'] = 2015
 
 ## Calculating the age of the company
 df['Age'] =  df.apply(lambda x: 2022 - int(x['Founded']) if int(x['Founded']) != -1 else -1, axis=1)
 
+# Removing the exact same rows
+df.drop_duplicates(subset = df.columns, keep = False, inplace = True)
+
 # 5) Parsing of the job desription (python ...)
 df['Python'] = df['Job Description'].apply(lambda x: 1 if 'python' in x.lower() else 0)
+df['Python'].value_counts()
 df['R'] = df['Job Description'].apply(lambda x: 1 if 'R' in x else 0)
+df['R'].value_counts()
 df['SQL'] = df['Job Description'].apply(lambda x: 1 if 'SQL' in x else 0)
+df['SQL'].value_counts()
 df['Machine Learning'] = df['Job Description'].apply(lambda x: 1 if 'machine learning' in x.lower() else 0)
-df['Deep Learning'] = df['Job Description'].apply(lambda x: 1 if 'deep learning' in x.lower() else 0)
+df['Machine Learning'].value_counts()
 df['Big Data'] = df['Job Description'].apply(lambda x: 1 if 'big data' in x.lower() else 0)
-df['Statistic'] = df['Job Description'].apply(lambda x: 1 if 'statistic' in x.lower() else 0)
+df['Statistique'] = df['Job Description'].apply(lambda x: 1 if 'statisti' in x.lower() else 0)
 df['Math'] = df['Job Description'].apply(lambda x: 1 if 'math' in x.lower() else 0)
 df['Master'] = df['Job Description'].apply(lambda x: 1 if 'master' in x.lower() else 0)
 df['AWS'] = df['Job Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
-df['SPARK'] = df['Job Description'].apply(lambda x: 1 if 'spark' in x.lower() else 0)
 
 # 6) Saving the cleaned data to CSV file
-df.to_csv('Glassdoor_ds_jobs_cleaned.csv', index=False)
+df.to_csv('Glassdoor_ds_jobs_France_cleaned.csv', index=False)
 
