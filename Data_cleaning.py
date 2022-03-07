@@ -85,6 +85,33 @@ df['Master'] = df['Job Description'].apply(lambda x: 1 if 'master' in x.lower() 
 df['AWS'] = df['Job Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
 df['SPARK'] = df['Job Description'].apply(lambda x: 1 if 'spark' in x.lower() else 0)
 
-# 6) Saving the cleaned data to CSV file
+# 6) Add seniority, job_desc_len and job_simp columns
+def job_simplified(title):
+    if 'data scientist' in title.lower():
+        return 'data scientist'
+    elif 'data engineer' in title.lower():
+        return 'data engineer'
+    elif 'analyst' in title.lower():
+        return 'analyst'
+    elif 'machine learning' in title.lower():
+        return 'ml engineer'
+    elif 'manager' in title.lower():
+        return 'manager'
+    elif 'director' in title.lower():
+        return 'director'
+    
+def seniority(title):
+    if 'sr' in title.lower() or 'senior' in title.lower() or 'principal' in title.lower() or 'lead' in title.lower():
+        return 'senior'
+    elif 'jr' in title.lower() or 'junior' in title.lower():
+        return 'junior'
+    else:
+        return 'na'
+df['Job simplified'] = df['Job Title'].apply(job_simplified)
+df['Seniority'] = df['Job Title'].apply(seniority)
+
+df['job desc len'] = df['Job Description'].apply(lambda x: len(x))
+
+# 7) Saving the cleaned data to CSV file
 df.to_csv('Glassdoor_ds_jobs_cleaned.csv', index=False)
 
