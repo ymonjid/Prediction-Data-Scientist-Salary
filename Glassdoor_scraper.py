@@ -26,8 +26,8 @@ def get_jobs(keyword, num_jobs, verbose, path):
     driver = webdriver.Chrome(executable_path=path, options=options)
     driver.set_window_size(900, 800)
             
-    #url = "https://www.glassdoor.com/Job/"+keyword+"-jobs-SRCH_KO0,14.htm?clickSource=searchBox"
-    url = "https://www.glassdoor.fr/Job/france-" + keyword + "-SRCH_IL.0,6_IN86_KO7,21.htm?clickSource=searchBox"
+    url = "https://www.glassdoor.com/Job/"+keyword+"-jobs-SRCH_KO0,14.htm?clickSource=searchBox"
+    #url = "https://www.glassdoor.fr/Job/france-" + keyword + "-SRCH_IL.0,6_IN86_KO7,21.htm?clickSource=searchBox"
     #url = 'https://www.glassdoor.com/Job/france-"'+ keyword+'"-jobs-SRCH_IL.0,16_IC1147401_KO17,31.htm?clickSource=searchBox'
     driver.get(url)
 
@@ -106,36 +106,84 @@ def get_jobs(keyword, num_jobs, verbose, path):
                 rating = driver.find_element_by_xpath('.//div[@class="mr-sm css-ey2fjr e1pr2f4f3"]').text
             except NoSuchElementException:
                 rating = -1 #You need to set a "not found value. It's important."
-                
+
             try:
-                size = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[1]//span[2]').text
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[1]//span[1]').text == 'Size':
+                    size = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[1]//span[2]').text
+                else:
+                    size = -1
             except NoSuchElementException:
                 size = -1
-                
+ 
             try:
-                founded = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[2]//span[2]').text
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[2]//span[1]').text == 'Founded':
+                        founded = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[2]//span[2]').text
+                else:
+                    founded = -1 
             except NoSuchElementException:
-                founded = -1
+                founded = -1  
 
-            try:
-                type_of_ownership = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[3]//span[2]').text
+            try:                 
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[3]//span[1]').text == 'Type':
+                    type_of_ownership = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[3]//span[2]').text
+                else:
+                    type_of_ownership = -1
             except NoSuchElementException:
                 type_of_ownership = -1
-
+                
             try:
-                industry = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[4]//span[2]').text
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[4]//span[1]').text == 'Industry':
+                    industry = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[4]//span[2]').text
+                else:
+                    industry = -1
             except NoSuchElementException:
                 industry = -1
 
-            try:
-                sector = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[5]//span[2]').text
+            try:             
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[5]//span[1]').text == 'Sector':
+                    sector = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[5]//span[2]').text
+                else:
+                    sector = -1
             except NoSuchElementException:
                 sector = -1
 
-            try:
-                revenue = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[6]//span[2]').text
+            try:            
+                if driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[6]//span[1]').text == 'Revenue':
+                    revenue = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[6]//span[2]').text
+                else:
+                    revenue = -1
             except NoSuchElementException:
                 revenue = -1
+                
+            # try:
+            #     size = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[1]//span[2]').text
+            # except NoSuchElementException:
+            #     size = -1
+                
+            # try:
+            #     founded = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[2]//span[2]').text
+            # except NoSuchElementException:
+            #     founded = -1        
+
+            # try:
+            #     type_of_ownership = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[3]//span[2]').text
+            # except NoSuchElementException:
+            #     type_of_ownership = -1
+
+            # try:
+            #     industry = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[4]//span[2]').text
+            # except NoSuchElementException:
+            #     industry = -1
+
+            # try:
+            #     sector = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[5]//span[2]').text
+            # except NoSuchElementException:
+            #     sector = -1
+
+            # try:
+            #     revenue = driver.find_element_by_xpath('.//div[@class="d-flex flex-wrap"]//div[6]//span[2]').text
+            # except NoSuchElementException:
+            #     revenue = -1
 
             # try:
             #     competitors = driver.find_element_by_xpath('.//div[@class="infoEntity"]//label[text()="Competitors"]//following-sibling::*').text
