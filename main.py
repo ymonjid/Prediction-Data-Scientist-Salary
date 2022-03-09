@@ -23,6 +23,7 @@ df.to_csv(data, index=False)
 # 2) Data cleaning
 import Data_cleaning as dc
 clean_data = 'Glassdoor_ds_jobs_cleaned_2.csv'
+
 df_clean = dc.Data_cleaning(data)
 df_clean.to_csv(clean_data, index=False)
 
