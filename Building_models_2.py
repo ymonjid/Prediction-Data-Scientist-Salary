@@ -56,7 +56,7 @@ def Building_models(file_in):
     lm_L = Lasso()
     cross_val_score(lm_L, X_train, y_train, scoring='neg_mean_absolute_error', cv=3)
     ### Trying various values for alpha
-    print('here')
+
     alpha = []
     scores_L = []
     for i in range(1,100):

@@ -8,7 +8,7 @@ Created on Sat Feb 19 10:30:42 2022
 
 import pandas as pd
 
-path = "/home/ymonjid/Desktop/Project_Data_science/Sahibinden_Flat_price/chromedriver_linux64_2/chromedriver"
+path = "/home/ymonjid/Desktop/Project_Data_science/Glassdoor_ds_jobs/chromedriver_linux64_2/chromedriver"
 keyword = 'Data-Scientist-Jobs'
 num_jobs = 1000
 
